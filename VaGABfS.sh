@@ -1,5 +1,3 @@
-  GNU nano 6.2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           auslesen.sh *                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  #!/bin/bash
-
 #Multidimensional arrays funktions
 #Delete upcoming Action
 deleteUpcomingAction() {
@@ -28,7 +26,7 @@ deleteUpcomingAction() {
    fi
 }
 
-# Ad upcoming action
+# Add upcoming action
 adUpcomingAction() {
    local input=("$@")
    local i=1
@@ -162,14 +160,14 @@ do
                then
                   stopBot=1
                   signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
-                  signal-cli send -g $currentGroup -m" Succesfully Stopped VaGABfS" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+                  signal-cli send -g $currentGroup -m" Successfully stopped VaGABfS" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
                else
                   signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
                   signal-cli send $replyAdress -m"$(printf "Message:\n%s\n\n" "${newMessages[@]}")" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
                fi
             else
             signal-cli sendReaction $replyAdress -t $messageTimestamp -e🚫 -a $messageAuthor
-            signal-cli send $replyAdress -m"you are a $authorRole, you need to be an Admin in order to execute this command" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+            signal-cli send $replyAdress -m"You are a $authorRole, you need to be an Admin in order to execute this command" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
             fi
          fi
       fi
@@ -187,7 +185,7 @@ newMessages=()
 #this is the location for unused scripts just ignore it
 
 #signal-cli sendReaction -g $currentGroup -t $messageTimestamp -e🚫 -a $messageAuthor
-Y#signal-cli send -g $currentGroup -m" You do not have the permission to execute commands" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+#signal-cli send -g $currentGroup -m" You do not have the permission to execute commands" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
 #echo "this person doesen't have the permission to execute comands"
 
 #signal-cli send -geVKi/98VxZfkqRHSt83zbEHJbn/eq3H0a/pIrpV7myA= -m"$(printf "Message:\n%s\n\n" "${newMessages[@]}")"
