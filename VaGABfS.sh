@@ -1,3 +1,5 @@
+  GNU nano 6.2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           auslesen.sh *                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  #!/bin/bash                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         aulesentest.sh                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   #!>
+
 # Multidimensional arrays functions
 # Delete upcoming Action
 deleteUpcomingAction() {
@@ -148,10 +150,14 @@ do
       if ! [[ "${newMessages[$cycle]}" =~ " Quote: Id: " ]]
       then
 
-         # Checking whether a command that requires administrator rights should be executed
-         if [[ "${newMessages[$cycle]}" =~ "stopBot" || "${newMessages[$cycle]}" =~ "logNewMessages" ]];
+         if [[ "${newMessages[$cycle]}" =~ "whoAreYou" ]];
          then
+            signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
+            signal-cli send $replyAdress -m"`echo -e " Hello! I am VaGABfS, the Voting and Group Administration Bot for Signal! It's my job to manage votings in our Signal group and tell you the results. Go to the Wiki-page of my GitHub-Repository (https://github.com/The-Bug-Bashers/VaGABfS/wiki#commands (YES, I HAVE A GITHUB REPO AND I'M VERY PROUD OF THAT‼ (REALLY‼))) to see the commands you can use while chatting with me. If you're too lazy to click on that link, here are some basic commands:\n- vote [voting-number] [answer]: Give your opinion to one of the currently running votings\n- voteInfo [voting-number]: Have a summary of all running votings and see the current state of the results"`" --text-style "448:29:ITALIC" "448:29:MONOSPACE" "448:29:BOLD" "539:24:ITALIC" "539:24:BOLD" "539:24:MONOSPACE" --preview-url https://github.com/The-Bug-Bashers/VaGABfS/wiki#commands --preview-title "MY GITHUB REPOSITORY WIKI‼" --preview-description "All of my commands" --preview-image github-6980894_1280.png --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
 
+         #Checking whether a command that requires administrator rights should be executed
+         elif [[ "${newMessages[$cycle]}" =~ "stopBot" || "${newMessages[$cycle]}" =~ "logNewMessages" ]];
+         then
             # Checking if The message author is an Admin
             if [[ "${Admins[@]}" =~ "$messageAuthor" ]];
             then
@@ -163,17 +169,16 @@ do
                   signal-cli send -g $currentGroup -m" Successfully stopped VaGABfS" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
                else
                   signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
-                  signal-cli send $replyAdress -m"$(printf "Message:\n%s\n\n" "${newMessages[@]}")" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+                  signal-cli send $replyAdress -m" $(printf "Message:\n%s\n\n" "${newMessages[@]}")" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
                fi
             else
             signal-cli sendReaction $replyAdress -t $messageTimestamp -e🚫 -a $messageAuthor
-            signal-cli send $replyAdress -m"You are a $authorRole, you need to be an Admin in order to execute this command" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+            signal-cli send $replyAdress -m" You are a $authorRole, you need to be an Admin in order to execute this command" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
             fi
          fi
       fi
-   fi
-
    ((cycle++))
+   fi
 done
 
 newMessages=()
@@ -181,32 +186,3 @@ newMessages=()
 
 
 
-
-# this is the location for unused scripts just ignore it
-
-# signal-cli sendReaction -g $currentGroup -t $messageTimestamp -e🚫 -a $messageAuthor
-# signal-cli send -g $currentGroup -m" You do not have the permission to execute commands" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
-# echo "this person doesen't have the permission to execute comands"
-
-# signal-cli send -geVKi/98VxZfkqRHSt83zbEHJbn/eq3H0a/pIrpV7myA= -m"$(printf "Message:\n%s\n\n" "${newMessages[@]}")"
-
-
-# while [[ $messages != *"stopBot"* ]];
-# do
-#    messages="$(signal-cli receive)"
-#    echo $messages
-#    if [[ $messages == *"logNewMessages"* ]];
-#    then
-#       echo "Logging new messgages"
-#       signal-cli send -geVKi/98VxZfkqRHSt83zbEHJbn/eq3H0a/pIrpV7myA= -m"$messages"
-#    else
-#       date
-#    fi
-# done
-
-
-# cycle=0
-# for element in "${newMessages[@]}"; do
-#    echo "$cycle: $element"
-#    ((cycle++))
-# done
