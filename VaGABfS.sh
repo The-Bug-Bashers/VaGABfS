@@ -1,10 +1,81 @@
-#!/bin/bash
+  GNU nano 6.2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           auslesen.sh *                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  #!/bin/bash
+
+#Multidimensional arrays funktions
+#Delete upcoming Action
+deleteUpcomingAction() {
+   local index=$1
+   # Check if index is valid
+   if [ $index -ge 0 ] && [ $index -lt ${#upcomingActions1[@]} ];
+   then
+      # Delete the element at the specified index
+      unset 'upcomingActions1[index]'
+      unset 'upcomingActions2[index]'
+      unset 'upcomingActions3[index]'
+      unset 'upcomingActions4[index]'
+      unset 'upcomingActions5[index]'
+      unset 'upcomingActions6[index]'
+      unset 'upcomingActions7[index]'
+      unset 'upcomingActions8[index]'
+      # Reindex the array
+      upcomingActions1=("${upcomingActions1[@]}")
+      upcomingActions2=("${upcomingActions2[@]}")
+      upcomingActions3=("${upcomingActions3[@]}")
+      upcomingActions4=("${upcomingActions4[@]}")
+      upcomingActions5=("${upcomingActions5[@]}")
+      upcomingActions6=("${upcomingActions6[@]}")
+      upcomingActions7=("${upcomingActions7[@]}")
+      upcomingActions8=("${upcomingActions8[@]}")
+   fi
+}
+
+# Ad upcoming action
+adUpcomingAction() {
+   local input=("$@")
+   local i=1
+   for item in "${input[@]}";
+   do
+      case $i in
+         1) upcomingActions1+=("$item") ;;
+         2) upcomingActions2+=("$item") ;;
+         3) upcomingActions3+=("$item") ;;
+         4) upcomingActions4+=("$item") ;;
+         5) upcomingActions5+=("$item") ;;
+         6) upcomingActions6+=("$item") ;;
+         7) upcomingActions7+=("$item") ;;
+         8) upcomingActions8+=("$item") ;;
+      esac
+      ((i++))
+   done
+
+   # Check if less than 8 elements were provided
+   if ((i <= 8)); then
+      for ((j=i; j<=8; j++)); do
+         case $j in
+            1) upcomingActions1+=("0") ;;
+            2) upcomingActions2+=("0") ;;
+            3) upcomingActions3+=("0") ;;
+            4) upcomingActions4+=("0") ;;
+            5) upcomingActions5+=("0") ;;
+            6) upcomingActions6+=("0") ;;
+            7) upcomingActions7+=("0") ;;
+            8) upcomingActions8+=("0") ;;
+         esac
+      done
+   fi
+}
+
+changeUpcomingAction() {
+   local inputArray=("$@") # Store all arguments in an array
+   local position=${inputArray[@]: -1} # Extract the last argument as the number
+   local inputArray=("${inputArray[@]::${#inputArray[@]}-1}") # Extract the array without the last element
+   deleteUpcomingAction $position
+   adUpcomingAction ${inputArray[@]}
+}
 
 
 #declaring variables and Arrays
 Admins=("+4915784191434")
 Moderatores=("${Admins[@]}" "+491774730644" "+491706186697")
-actions=()
 currentGroup="eVKi/98VxZfkqRHSt83zbEHJbn/eq3H0a/pIrpV7myA="
 stopBot=0
 upcomingActions1=() # Asosiated command
@@ -90,7 +161,7 @@ do
                if [[ "${newMessages[$cycle]}" =~ "stopBot" ]];
                then
                   stopBot=1
-                  signal-cli sendReaction -g $currentGroup -t $messageTimestamp -e✅ -a $messageAuthor
+                  signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
                   signal-cli send -g $currentGroup -m" Succesfully Stopped VaGABfS" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
                else
                   signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
@@ -98,7 +169,7 @@ do
                fi
             else
             signal-cli sendReaction $replyAdress -t $messageTimestamp -e🚫 -a $messageAuthor
-            signal-cli send $replyAdress -m"you are a $authorRole you need to be an Admin in order to execute this command" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+            signal-cli send $replyAdress -m"you are a $authorRole, you need to be an Admin in order to execute this command" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
             fi
          fi
       fi
@@ -116,7 +187,7 @@ newMessages=()
 #this is the location for unused scripts just ignore it
 
 #signal-cli sendReaction -g $currentGroup -t $messageTimestamp -e🚫 -a $messageAuthor
-#signal-cli send -g $currentGroup -m" You do not have the permission to execute commands" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+Y#signal-cli send -g $currentGroup -m" You do not have the permission to execute commands" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
 #echo "this person doesen't have the permission to execute comands"
 
 #signal-cli send -geVKi/98VxZfkqRHSt83zbEHJbn/eq3H0a/pIrpV7myA= -m"$(printf "Message:\n%s\n\n" "${newMessages[@]}")"
@@ -141,6 +212,3 @@ newMessages=()
 #   echo "$cycle: $element"
 #   ((cycle++))
 #done
-
-
-
