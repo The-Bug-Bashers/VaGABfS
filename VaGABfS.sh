@@ -1,5 +1,5 @@
-#Multidimensional arrays functions
-#Delete upcoming Action
+# Multidimensional arrays functions
+# Delete upcoming Action
 deleteUpcomingAction() {
    local index=$1
    # Check if index is valid
@@ -71,7 +71,7 @@ changeUpcomingAction() {
 }
 
 
-#declaring variables and Arrays
+# declaring variables and Arrays
 Admins=("+4915784191434")
 Moderatores=("${Admins[@]}" "+491774730644" "+491706186697")
 currentGroup="eVKi/98VxZfkqRHSt83zbEHJbn/eq3H0a/pIrpV7myA="
@@ -85,15 +85,15 @@ upcomingActions6=() # spetial Parameters 2
 upcomingActions7=() # spetial Parameters 3
 upcomingActions8=() # spetial Parameters 4
 
-#main loop runs until bot is stopped
-#while [ $stopBot -ne 1 ];
-#do
+# main loop runs until bot is stopped
+# while [ $stopBot -ne 1 ];
+# do
 
-#getting new messages
+# getting new messages
 RawData="$(signal-cli receive --ignore-stories --ignore-attachments)Envelope"
 Data="$(echo $RawData)"
 
-#converting newMessages for grep command
+# converting newMessages for grep command
 ConvertetData="${Data// /_}"
 
 # $() The expression within the brackets is executed as a command and the result is returned.
@@ -113,16 +113,16 @@ ConvertetData="${Data// /_}"
 # grep 'Body: ' filters the output of the previous grep command to only include lines containing the string "Body:".
 newConvertetMessages=($(echo "$ConvertetData" | grep -oP '(?<=Envelope).*?(?=Envelope)' | grep 'Body:'))
 
-newMessages=("${newConvertetMessages[@]//_/ }") #Converting the strings back to their original form
+newMessages=("${newConvertetMessages[@]//_/ }") # Converting the strings back to their original form
 
-#analysing new messages
+# analysing new messages
 cycle=0
 for element in "${newMessages[@]}";
 do
    echo "$cycle: "
    echo "$element"
 
-   #getting memessag author, message timestamp, author role and reply adress.
+   # getting memessag author, message timestamp, author role and reply adress.
    messageAuthor=$(echo "${newMessages[cycle]}" | grep -oP '\+\d+' | head -n 1)
    messageTimestamp=$(echo "${newMessages[cycle]}" | grep -oP 'Timestamp: \K\d+')
    replyAdress=$(echo "${newMessages[cycle]}" | grep -oP ' Group info: Id: \K\S+')
@@ -142,13 +142,13 @@ do
       authorRole="Member"
    fi
 
-   #checking if VaGABfS was mentioned and there is no quotet message
+   # checking if VaGABfS was mentioned and there is no quotet message
    if [[ "${newMessages[$cycle]}" =~ " Mentions: - “VaGABfS " || "$replyAdress" != *g* ]];
    then
       if ! [[ "${newMessages[$cycle]}" =~ " Quote: Id: " ]]
       then
 
-         #Checking whether a command that requires administrator rights should be executed
+         # Checking whether a command that requires administrator rights should be executed
          if [[ "${newMessages[$cycle]}" =~ "stopBot" || "${newMessages[$cycle]}" =~ "logNewMessages" ]];
          then
 
@@ -177,36 +177,36 @@ do
 done
 
 newMessages=()
-#done
+# done
 
 
 
 
-#this is the location for unused scripts just ignore it
+# this is the location for unused scripts just ignore it
 
-#signal-cli sendReaction -g $currentGroup -t $messageTimestamp -e🚫 -a $messageAuthor
-#signal-cli send -g $currentGroup -m" You do not have the permission to execute commands" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
-#echo "this person doesen't have the permission to execute comands"
+# signal-cli sendReaction -g $currentGroup -t $messageTimestamp -e🚫 -a $messageAuthor
+# signal-cli send -g $currentGroup -m" You do not have the permission to execute commands" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+# echo "this person doesen't have the permission to execute comands"
 
-#signal-cli send -geVKi/98VxZfkqRHSt83zbEHJbn/eq3H0a/pIrpV7myA= -m"$(printf "Message:\n%s\n\n" "${newMessages[@]}")"
-
-
-#while [[ $messages != *"stopBot"* ]];
-#do
-#   messages="$(signal-cli receive)"
-#   echo $messages
-#   if [[ $messages == *"logNewMessages"* ]];
-#   then
-#      echo "Logging new messgages"
-#      signal-cli send -geVKi/98VxZfkqRHSt83zbEHJbn/eq3H0a/pIrpV7myA= -m"$messages"
-#   else
-#      date
-#   fi
-#done
+# signal-cli send -geVKi/98VxZfkqRHSt83zbEHJbn/eq3H0a/pIrpV7myA= -m"$(printf "Message:\n%s\n\n" "${newMessages[@]}")"
 
 
-#cycle=0
-#for element in "${newMessages[@]}"; do
-#   echo "$cycle: $element"
-#   ((cycle++))
-#done
+# while [[ $messages != *"stopBot"* ]];
+# do
+#    messages="$(signal-cli receive)"
+#    echo $messages
+#    if [[ $messages == *"logNewMessages"* ]];
+#    then
+#       echo "Logging new messgages"
+#       signal-cli send -geVKi/98VxZfkqRHSt83zbEHJbn/eq3H0a/pIrpV7myA= -m"$messages"
+#    else
+#       date
+#    fi
+# done
+
+
+# cycle=0
+# for element in "${newMessages[@]}"; do
+#    echo "$cycle: $element"
+#    ((cycle++))
+# done
