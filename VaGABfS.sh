@@ -1,4 +1,4 @@
-#Multidimensional arrays functions
+#Multidimensional arrays funktions
 #Delete upcoming Action
 deleteUpcomingAction() {
    local index=$1
