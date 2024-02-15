@@ -1,10 +1,23 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+from random import shuffle
+import sys
 
 #defining
 fig = plt.figure()
 ax = plt.gca()
+barcount = 0
+
+#setting values
+xvalues = ["ja", "enthaltung", "nein"]
+yvalues = [3, 2, 7]
+if len(xvalues) > 6:
+    print("too many answers")
+    sys.exit()
+if len(yvalues) != len(xvalues):
+    print("answer and votes must be same amount of vars")
+    sys.exit()
 
 #font settings
 font = {'family': 'serif',
@@ -32,19 +45,24 @@ ax.spines["bottom"].set_color("#ffffff")
 #setting tick color
 plt.tick_params(color="#ffffff",labelcolor="#ffffff")
 
-#setting values
-xvalueja = ["ja"]
-yvalueja = [3]
-xvaluenein = ["nein"]
-yvaluenein = [8]
-
 #setting heading
 title = "Platzhalter für Überschrift und Nummer"
 plt.title(title, fontdict=heading, loc="center")
 
-#configuring bars
-p1 = plt.barh(xvalueja, yvalueja, color="#00ff00")
-p2 = plt.barh(xvaluenein, yvaluenein, color="#ff0000")
+
+#setting bar colors
+if xvalues == ["ja", "enthaltung", "nein"]:
+    barcolors = ["green", "yellow", "red"]
+else:
+    barcolors = ["red", "orange", "yellow", "green", "blue", "purple"]
+    shuffle(barcolors)
+
+
+#creating bars
+for x in xvalues:
+    plt.barh(xvalues[barcount], yvalues[barcount], color=barcolors[barcount])
+    barcount = barcount + 1
+
 
 #configuring labels
 plt.xlabel("Anzahl der Stimmen", fontdict=font)
@@ -62,15 +80,12 @@ if os.path.exists("graphs"):
         counter = str(counter)
         c.write(counter)
         c.close()
-    
     else:
         counter = 1
         c = open("counter", "w")
         counter = str(counter)
         c.write(counter)
         c.close()
-    
-
 else:
     os.mkdir("graphs")
     os.chdir("graphs")
