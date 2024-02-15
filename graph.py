@@ -13,6 +13,12 @@ font = {'family': 'serif',
         'size': 12,
         }
 
+heading = {'family': 'serif',
+        'color':  'white',
+        'weight': 'normal',
+        'size': 16,
+        }
+
 #set background color
 fig.patch.set_facecolor("#49565c")
 ax.set_facecolor("#49565c")
@@ -31,6 +37,10 @@ xvalueja = ["ja"]
 yvalueja = [3]
 xvaluenein = ["nein"]
 yvaluenein = [8]
+
+#setting heading
+title = "Platzhalter für Überschrift und Nummer"
+plt.title(title, fontdict=heading, loc="center")
 
 #configuring bars
 p1 = plt.barh(xvalueja, yvalueja, color="#00ff00")
@@ -69,6 +79,5 @@ else:
     counter = str(counter)
     c.write(counter)
     c.close()
-
 
 plt.savefig("graph" + counter + ".png")
