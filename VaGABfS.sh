@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#🐈🐕
+
+# funktion to get the index an element by its content
 get_index() {
    local array=("$@")
    local element=$1
@@ -15,7 +18,22 @@ get_index() {
 # Example usage: index=$(get_index "${my_array[@]}" "$element")
 }
 
+
+
 # Multidimensional arrays functions
+# Output upcoming action
+logUpcomingAction() {
+    local i="$1"
+    echo "1: ${upcomingActions1[$i]} "
+    echo "2: ${upcomingActions2[$i]} "
+    echo "3: ${upcomingActions3[$i]} "
+    echo "4: ${upcomingActions4[$i]} "
+    echo "5: ${upcomingActions5[$i]} "
+    echo "6: ${upcomingActions6[$i]} "
+    echo "7: ${upcomingActions7[$i]} "
+    echo "8: ${upcomingActions8[$i]} "
+}
+
 # Delete upcoming Action
 deleteUpcomingAction() {
    local index=$1
@@ -103,8 +121,8 @@ upcomingActions7=() # spetial Parameters 3
 upcomingActions8=() # spetial Parameters 4
 
 # main loop that runs until bot is stopped
-#while [ $stopBot -ne 1 ];
-#do
+while [ $stopBot -ne 1 ];
+do
 
 # getting new messages
 RawData="$(signal-cli receive --ignore-stories --ignore-attachments)Envelope"
@@ -242,13 +260,51 @@ do
             fi
 
          # Checking whether a command that requires administrator rights should be executed
-         elif [[ "${newMessages[cycle]}" =~ "stopBot" || "${newMessages[cycle]}" =~ "logNewMessages" ]];
+         elif [[ "${newMessages[cycle]}" =~ "stopBot" || "${newMessages[cycle]}" =~ "logNewMessages" || "${newMessages[cycle]}" =~ "logUpcomingActions" || "${newMessages[cycle]}" =~ "addUpcomingAction" || "${newMessages[cycle]}" =~ "deleteUpcomingAction" ]];
          then
             # Checking if The message author is an Admin
             if [[ "${Admins[@]}" =~ "$messageAuthor" ]];
             then
 
-               if [[ "${newMessages[cycle]}" =~ "stopBot" ]];
+               # checking if logUpcomingActions should be executed
+               if [[ "${newMessages[cycle]}" =~ "logUpcomingActions" ]];
+               then
+                  Data=""
+                  for ((k = 0; k < ${#upcomingActions1[@]}; k++));
+                  do
+                     Data+="UpcomingAction $k: \n $(logUpcomingAction $k) \n\n"
+                  done
+                  signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
+                  signal-cli send -g $currentGroup -m"`echo -e " $Data"`" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+
+               # checking if addUpcomingAction should be executed
+               elif [[ "${newMessages[cycle]}" =~ "addUpcomingAction" ]];
+               then
+                  Data=$(echo "${newMessages[cycle]}" | grep -oP '(?<=addUpcomingAction ")[^"]*')
+                  if [[ $Data = "" ]];
+                  then
+                     signal-cli sendReaction $replyAdress -t $messageTimestamp -e🫤 -a $messageAuthor
+                     signal-cli send -g $currentGroup -m" no upcoming action to add found to add an upcoming action excute addUpcomingAction \"<the upcoming action that should be added>\"" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+                  else
+                     addUpcomingAction $Data
+                     signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
+                  fi
+
+               # checking if deleteUpcomingAction should be executed
+               elif [[ "${newMessages[cycle]}" =~ "deleteUpcomingAction" ]];
+               then
+                  Data=$(echo "${newMessages[cycle]}" | grep -oP 'deleteUpcomingAction \K\d+')
+                  if [[ $Data = "" ]];
+                  then
+                     signal-cli sendReaction $replyAdress -t $messageTimestamp -e🫤 -a $messageAuthor
+                    signal-cli send -g $currentGroup -m" no upcoming action to delete found to add an upcoming action excute addUpcomingAction <the number of the upcoming action that should be deleted>"  --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+                  else
+                     deleteUpcomingAction $Data
+                     signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
+                  fi
+
+               # checking if stopBot should be executed
+               elif [[ "${newMessages[cycle]}" =~ "stopBot" ]];
                then
                   if [[ "${upcomingActions1[@]}" =~ "stopBot" ]];
                   then
@@ -269,10 +325,11 @@ do
                   else
                   signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
                   signal-cli send -g $currentGroup -m" Are you sure you want to stop VaGABfS? (yes/no)" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
-                  addUpcomingAction stopBot $messageTimestamp $messageAuthor $replyAdress 1
+                  addUpcomingAction stopBot $messageTimestamp $messageAuthor $replyAdress
                   fi
 
                else
+                  # executing logNewMessages
                   signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
                   signal-cli send $replyAdress -m" $(printf "Message:\n%s\n\n" "${newMessages[@]}")" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
                fi
@@ -287,7 +344,7 @@ do
 done
 
 newMessages=()
-#done
+done
 
 # this is the location for unused things just ignore it
 
