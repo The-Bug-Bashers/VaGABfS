@@ -1,4 +1,4 @@
-#!/bin/bash                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         aulesentest.sh                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   #!>#🐈🐕
+#!/bin/bash
 
 get_index() {
    local array=("$@")
@@ -102,9 +102,9 @@ upcomingActions6=() # spetial Parameters 2
 upcomingActions7=() # spetial Parameters 3
 upcomingActions8=() # spetial Parameters 4
 
-# main loop runs until bot is stopped
-while [ $stopBot -ne 1 ];
-do
+# main loop that runs until bot is stopped
+#while [ $stopBot -ne 1 ];
+#do
 
 # getting new messages
 RawData="$(signal-cli receive --ignore-stories --ignore-attachments)Envelope"
@@ -186,11 +186,17 @@ do
          fi
 
          # checking if a command yhould be executet that doesent require moderrator or admin rights
-         if [[ "${newMessages[cycle]}" =~ "whoAreYou" ||  "${newMessages[cycle]}" =~ "whatRoleIs" ]];
+         if [[ "${newMessages[cycle]}" =~ "whoAreYou" || "${newMessages[cycle]}" =~ "whatRoleIs" || "${newMessages[cycle]}" =~ "help" ]];
          then
 
+            #checking if help should be executed
+            if [[ "${newMessages[cycle]}" =~ "help" ]];
+            then
+               signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
+               signal-cli send $replyAdress -m"`echo -e " To find more information about me, visit: https://github.com/The-Bug-Bashers/VaGABfS If you got further questions, feel free to contact my programmer @Flottegurke. To contact @Flottegurke, open a new issue here: https://github.com/The-Bug-Bashers/VaGABfS/issues/new and add the label „question“."`" --preview-url  https://github.com/The-Bug-Bashers/VaGABfS --preview-title "My GitHub repository" --preview-description "Here you can find information about me and get help if you have any questions."  --quote-timestamp $messageTimestamp --quote-author $messageAuthor --preview-image github-6980894_1280.png --mention "0:0:$messageAuthor"
+
             # checking if whoAreYou should be executed
-            if [[ "${newMessages[cycle]}" =~ "whoAreYou" ]];
+            elif [[ "${newMessages[cycle]}" =~ "whoAreYou" ]];
             then
                # checking if someone else then the message author should be mentioned
                if [[ "${newMessages[cycle]}" =~ "-m" || "${newMessages[cycle]}" =~ "--mention" ]];
@@ -210,7 +216,7 @@ do
                then
                   replyAdress="$messageAuthor"
                fi
-            signal-cli send $replyAdress -m"`echo -e " Hello! I am VaGABfS, the Voting and Group Administration Bot for Signal! It's my job to manage votings in our Signal group and tell you the results. Go to the Wiki-page of my GitHub-Repository (https://github.com/The-Bug-Bashers/VaGABfS/wiki#commands (YES, I HAVE A GITHUB REPO AND I'M VERY PROUD OF THAT‼ (REALLY‼))) to see the commands you can use while chatting with me. If you're too lazy to click on that link, here are some basic commands:\n- vote [voting-number] [answer]: Give your opinion to one of the currently running votings\n- voteInfo [voting-number]: Have a summary of all running votings and see the current state of the results"`" --text-style "449:29:ITALIC" "449:29:MONOSPACE" "449:29:BOLD" "540:24:ITALIC" "540:24:BOLD" "540:24:MONOSPACE" --preview-url https://github.com/The-Bug-Bashers/VaGABfS/wiki#commands --preview-title "MY GITHUB REPOSITORY WIKI‼" --preview-description "All of my commands" --preview-image github-6980894_1280.png --mention "0:0:$messageAuthor"
+            signal-cli send $replyAdress -m"`echo -e " Hello! I am VaGABfS, the Voting and Group Administration Bot for Signal! It's my job to manage votings in our Signal group and tell you the results. Go to the Wiki-page of my GitHub-Repository (https://github.com/The-Bug-Bashers/VaGABfS/wiki#manual (YES, I HAVE A GITHUB REPO AND I'M VERY PROUD OF THAT‼ (REALLY‼))) to see the commands you can use while chatting with me. If you're too lazy to click on that link, here are some basic commands:\n- vote [voting-number] [answer]: Give your opinion to one of the currently running votings\n- voteInfo [voting-number]: Have a summary of all running votings and see the current state of the results"`" --text-style "449:29:ITALIC" "449:29:MONOSPACE" "449:29:BOLD" "540:24:ITALIC" "540:24:BOLD" "540:24:MONOSPACE" --preview-url https://github.com/The-Bug-Bashers/VaGABfS/wiki#manual --preview-title "MY GITHUB REPOSITORY WIKI‼" --preview-description "All of my commands" --preview-image github-6980894_1280.png --mention "0:0:$messageAuthor"
             else
 
                #executing whatRoleIs command
@@ -281,7 +287,7 @@ do
 done
 
 newMessages=()
-done
+#done
 
 # this is the location for unused things just ignore it
 
