@@ -18,8 +18,6 @@ get_index() {
 # Example usage: index=$(get_index "${my_array[@]}" "$element")
 }
 
-
-
 # Multidimensional arrays functions
 # Output upcoming action
 logUpcomingAction() {
@@ -105,7 +103,6 @@ changeUpcomingAction() {
    addUpcomingAction ${inputArray[@]}
 }
 
-
 # declaring variables and Arrays
 Admins=("+4915784191434")
 Moderatores=("${Admins[@]}" "+491774730644" "+491706186697")
@@ -114,10 +111,44 @@ upcomingActions1=() # Asosiated command
 upcomingActions2=() # Timestamp of original message
 upcomingActions3=() # Author of original message
 upcomingActions4=() # replyAdress for further messages
-upcomingActions5=() # spetial Parameters 1
-upcomingActions6=() # spetial Parameters 2
-upcomingActions7=() # spetial Parameters 3
-upcomingActions8=() # spetial Parameters 4
+upcomingActions5=() # expiration time in UNIX (date +%s%N | cut -b1-13)
+upcomingActions6=() # spetial Parameters 1
+upcomingActions7=() # spetial Parameters 2
+upcomingActions8=() # spetial Parameters 3
+
+
+# funktion to check if an upcoming action should be performed
+upcomingActionShouldBePerformed() {
+   local Time="$(date +%s%N | cut -b1-13)"
+   for l in "${!upcomingActions5[@]}";
+   do
+      local expirationTime="${upcomingActions5[$l]}"
+      if [[ "${upcomingActions5[$l]}" == "$Time" ]] || (( expirationTime < Time ));
+      then
+         action=$l
+         return 0
+      fi
+   done
+   return 1
+}
+
+
+
+# Executing upcoming actions
+executeUpcomingActions() {
+   #checking if an upcoming action should be performed
+   while upcomingActionShouldBePerformed;
+   do
+
+      #checking if stopBot is expired
+      if [[ "${upcomingActions1[$action]}" =~ "stopBot" ]];gActions3+=("0") ;;
+      then
+         signal-cli sendReaction ${upcomingActions4[$action]} -t ${upcomingActions2[$action]} -e⏰ -a ${upcomingActions3[$action]}
+         signal-cli send ${upcomingActions4[$action]} -m" You took too long to respond. stopBot will be cancelled" --mention "0:0:${upcomingActions3[$action]}" --quote-timestamp ${upcomingActions2[$action]} --quote-author ${upcomingActions3[$action]}
+      fi
+   deleteUpcomingAction $action
+   done
+}
 
 # main loop that runs until bot is stopped
 while [ $stopBot -ne 1 ];
@@ -148,14 +179,32 @@ ConvertetData="${Data// /_}"
 newConvertetMessages=($(echo "$ConvertetData" | grep -oP '(?<=Envelope).*?(?=Envelope)' | grep 'Body:'))
 newMessages=("${newConvertetMessages[@]//_/ }") # Converting the strings back to their original form
 
+# Executing upcoming actions
+executeUpcomingActions
+
 # analysing new messages
 cycle=0
 for element in "${newMessages[@]}";
 do
+
+   # Executing upcoming actions
+   executeUpcomingActions
+
    echo "$cycle: "
    echo "$element"
 
-   # getting reply adress
+   # getting memessag author, message timestamp, author role and reply adress.
+   messageAuthor=$(echo "${newMessages[cycle]}" | grep -oP '\+\d+' | head -n 1)
+   messageTimestamp=$(echo "${newMessages[cycle]}" | grep -oP 'Timestamp: \K\d+')
+   if [[ " ${Admins[@]} " =~ "$messageAuthor" ]];
+   then
+      authorRole="Admin"
+   elif [[ " ${Moderatores[@]} " =~ "$messageAuthor" ]];
+   then
+      authorRole="Moderator"
+   else
+      authorRole="Member"
+   fi
    replyAdress=$(echo "${newMessages[cycle]}" | grep -oP ' Group info: Id: \K\S+')
    if [[ "$replyAdress" = "" ]]
    then
@@ -165,23 +214,10 @@ do
    fi
 
    # checking if VaGABfS was mentioned and there is no quotet message
-   if [[ "${newMessages[cycle]}" =~ " Mentions: - “VaGABfS " || ! "$replyAdress" =~ "-g" || "${newMessages[cycle],,}" =~ " nein " || "${newMessages[cycle],,}" =~ " nö " || "${newMessages[cycle],,}" =~ " ne " || "${newMessages[cycle],,}" =~ "gute nacht" || "${newMessages[cycle],,}" =~ "guten morgen" || "${newMessages[cycle],,}" =~ "🦦" ]];
+   if [[ "${newMessages[cycle]}" =~ " Mentions: - “VaGABfS " || ! "$replyAdress" =~ "-g" || "${newMessages[cycle],,}" =~ " nein " || "${newMessages[cycle],,}" =~ " nö " || "${newMessages[cycle],,}" =~ " ne " || "${newMessages[cycle],,}" =~ "gute nacht" || "${newMessages[cycle],,}" =~ "guten morgen" || "${newMessages[cycle],,}" =~ "🦦" || "${newMessages[cycle],,}" =~ "allo" ]];
    then
       if ! [[ "${newMessages[cycle]}" =~ " Quote: Id: " ]];
       then
-
-         # getting memessag author, message timestamp and author role.
-         messageAuthor=$(echo "${newMessages[cycle]}" | grep -oP '\+\d+' | head -n 1)
-         messageTimestamp=$(echo "${newMessages[cycle]}" | grep -oP 'Timestamp: \K\d+')
-         if [[ " ${Admins[@]} " =~ "$messageAuthor" ]];
-         then
-            authorRole="Admin"
-         elif [[ " ${Moderatores[@]} " =~ "$messageAuthor" ]];
-         then
-            authorRole="Moderator"
-         else
-            authorRole="Member"
-         fi
 
          # checking if an auto-reply-trigger-word got received and replying
          if [[ "${newMessages[cycle],,}" =~ " nein " || "${newMessages[cycle],,}" =~ " nö " || "${newMessages[cycle],,}" =~ " ne " ]];
@@ -189,10 +225,18 @@ do
             signal-cli send $replyAdress -m"Doch‼" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
          elif [[  "${newMessages[cycle],,}" =~ "guten morgen" ]];
          then
-            signal-cli send $replyAdress -m"Guten Morgen‼👋"
+
+            if ! [[ "${upcomingActions6[@]}" =~ "gutenMorgen" && "${upcomingActions4[@]}" =~ "$replyAdress" ]];
+            then
+               signal-cli send $replyAdress -m"Guten Morgen‼👋"
+               addUpcomingAction "timeout" $messageTimestamp $messageAuthor $replyAdress "$(( $(date +%s%N | cut -b1-13)+3600000))" "gutenMorgen"
+            fi
          elif [[  "${newMessages[cycle],,}" =~ "🦦" ]];
          then
             signal-cli send $replyAdress -m"Süßer Otter 🦦 😍" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+         elif [[  "${newMessages[cycle],,}" =~ "allo" ]];
+         then
+            signal-cli send $replyAdress -m" Hallo! 👋"
          elif [[  "${newMessages[cycle],,}" =~ "gute nacht" ]];
          then
             if [[ "$messageAuthor" =~ "+4915255665313" ]];
@@ -201,10 +245,9 @@ do
             else
                signal-cli send $replyAdress -m"Gute Nacht💤"
             fi
-         fi
 
          # checking if a command yhould be executet that doesent require moderrator or admin rights
-         if [[ "${newMessages[cycle]}" =~ "whoAreYou" || "${newMessages[cycle]}" =~ "whatRoleIs" || "${newMessages[cycle]}" =~ "help" ]];
+         elif [[ "${newMessages[cycle]}" =~ "whoAreYou" || "${newMessages[cycle]}" =~ "whatRoleIs" || "${newMessages[cycle]}" =~ "help" ]];
          then
 
             #checking if help should be executed
@@ -234,7 +277,7 @@ do
                then
                   replyAdress="$messageAuthor"
                fi
-            signal-cli send $replyAdress -m"`echo -e " Hello! I am VaGABfS, the Voting and Group Administration Bot for Signal! It's my job to manage votings in our Signal group and tell you the results. Go to the Wiki-page of my GitHub-Repository (https://github.com/The-Bug-Bashers/VaGABfS/wiki#manual (YES, I HAVE A GITHUB REPO AND I'M VERY PROUD OF THAT‼ (REALLY‼))) to see the commands you can use while chatting with me. If you're too lazy to click on that link, here are some basic commands:\n- vote [voting-number] [answer]: Give your opinion to one of the currently running votings\n- voteInfo [voting-number]: Have a summary of all running votings and see the current state of the results"`" --text-style "449:29:ITALIC" "449:29:MONOSPACE" "449:29:BOLD" "540:24:ITALIC" "540:24:BOLD" "540:24:MONOSPACE" --preview-url https://github.com/The-Bug-Bashers/VaGABfS/wiki#manual --preview-title "MY GITHUB REPOSITORY WIKI‼" --preview-description "All of my commands" --preview-image github-6980894_1280.png --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+               signal-cli send $replyAdress -m"`echo -e " Hello! I am VaGABfS, the Voting and Group Administration Bot for Signal! It's my job to manage votings in our Signal group and tell you the results. Go to the Wiki-page of my GitHub-Repository (https://github.com/The-Bug-Bashers/VaGABfS/wiki#manual (YES, I HAVE A GITHUB REPO AND I'M VERY PROUD OF THAT‼ (REALLY‼))) to see the commands you can use while chatting with me. If you're too lazy to click on that link, here are some basic commands:\n- vote [voting-number] [answer]: Give your opinion to one of the currently running votings\n- voteInfo [voting-number]: Have a summary of all running votings and see the current state of the results"`" --text-style "449:29:ITALIC" "449:29:MONOSPACE" "449:29:BOLD" "540:24:ITALIC" "540:24:BOLD" "540:24:MONOSPACE" --preview-url https://github.com/The-Bug-Bashers/VaGABfS/wiki#manual --preview-title "MY GITHUB REPOSITORY WIKI‼" --preview-description "All of my commands" --preview-image github-6980894_1280.png --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
             else
 
                #executing whatRoleIs command
@@ -456,8 +499,8 @@ do
                      fi
                   else
                   signal-cli sendReaction $replyAdress -t $messageTimestamp -e⏩ -a $messageAuthor
-                  signal-cli send $replyAdress -m" Are you sure you want to stop VaGABfS? (yes/no)" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
-                  addUpcomingAction stopBot $messageTimestamp $messageAuthor $replyAdress
+                  signal-cli send $replyAdress -m" Are you sure you want to stop VaGABfS (yes/no)? If you do not respond within the next two minutes, stopBot will be cancelled." --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+                  addUpcomingAction stopBot $messageTimestamp $messageAuthor $replyAdress "$(( $(date +%s%N | cut -b1-13)+120000))"
                   fi
 
                else
@@ -469,6 +512,9 @@ do
             signal-cli sendReaction $replyAdress -t $messageTimestamp -e🚫 -a $messageAuthor
             signal-cli send $replyAdress -m" You are a $authorRole, you need to be an Admin in order to execute this command" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
             fi
+         else
+            signal-cli sendReaction $replyAdress -t $messageTimestamp -e🫤 -a $messageAuthor
+            signal-cli send $replyAdress -m" No command found, execute help to get help about how to use VaGABfS." --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
          fi
       fi
    fi
@@ -481,3 +527,12 @@ done
 # this is the location for unused things just ignore it
 
 #🚫 ✅ 🫤
+
+#while [ $stopBot -ne 1 ];
+#do
+#time="$(date +%s%N | cut -b1-13)"
+#        if [[ "$cooldown" == "$time" ]] || (( cooldown < time )); then
+#            stopBot=1
+#        fi
+#done
+#echo "vertig"
