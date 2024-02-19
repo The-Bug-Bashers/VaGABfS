@@ -1,8 +1,6 @@
 #!/bin/bash
 
-#🐈🐕
-
-# funktion to get the index an element by its content
+# Function to get the index an element by its content
 get_index() {
    local array=("$@")
    local element=$1
@@ -32,7 +30,7 @@ logUpcomingAction() {
     echo "8: ${upcomingActions8[$i]} "
 }
 
-# Delete upcoming Action
+# Delete upcoming action
 deleteUpcomingAction() {
    local index=$1
    # Check if index is valid
@@ -103,21 +101,21 @@ changeUpcomingAction() {
    addUpcomingAction ${inputArray[@]}
 }
 
-# declaring variables and Arrays
+# Declaring variables and arrays
 Admins=("+4915784191434")
 Moderatores=("${Admins[@]}" "+491774730644" "+491706186697")
 stopBot=0
-upcomingActions1=() # Asosiated command
+upcomingActions1=() # Associated command
 upcomingActions2=() # Timestamp of original message
 upcomingActions3=() # Author of original message
-upcomingActions4=() # replyAdress for further messages
-upcomingActions5=() # expiration time in UNIX (date +%s%N | cut -b1-13)
-upcomingActions6=() # spetial Parameters 1
-upcomingActions7=() # spetial Parameters 2
-upcomingActions8=() # spetial Parameters 3
+upcomingActions4=() # replyAddress for further messages
+upcomingActions5=() # Expiration time in UNIX (date +%s%N | cut -b1-13)
+upcomingActions6=() # Special Parameters 1
+upcomingActions7=() # Special Parameters 2
+upcomingActions8=() # Special Parameters 3
 
 
-# funktion to check if an upcoming action should be performed
+# Function to check if an upcoming action should be performed
 upcomingActionShouldBePerformed() {
    local Time="$(date +%s%N | cut -b1-13)"
    for l in "${!upcomingActions5[@]}";
@@ -136,11 +134,11 @@ upcomingActionShouldBePerformed() {
 
 # Executing upcoming actions
 executeUpcomingActions() {
-   #checking if an upcoming action should be performed
+   # Checking if an upcoming action should be performed
    while upcomingActionShouldBePerformed;
    do
 
-      #checking if stopBot is expired
+      # Checking if stopBot is expired
       if [[ "${upcomingActions1[$action]}" =~ "stopBot" ]];gActions3+=("0") ;;
       then
          signal-cli sendReaction ${upcomingActions4[$action]} -t ${upcomingActions2[$action]} -e⏰ -a ${upcomingActions3[$action]}
@@ -150,15 +148,15 @@ executeUpcomingActions() {
    done
 }
 
-# main loop that runs until bot is stopped
+# Main loop that runs until bot is stopped
 while [ $stopBot -ne 1 ];
 do
 
-# getting new messages
+# Getting new messages
 RawData="$(signal-cli receive --ignore-stories --ignore-attachments)Envelope"
 Data="$(echo $RawData)"
 
-# converting newMessages for grep command
+# Converting newMessages for grep command
 ConvertetData="${Data// /_}"
 
 # $() The expression within the brackets is executed as a command and the result is returned.
@@ -173,7 +171,7 @@ ConvertetData="${Data// /_}"
       # . Match any character except a line break
       # * Match with zero or more occurrences of the preceding element (here .)
       # ? Makes the preceding quantifier (here *) ungreedy, meaning that it tries to match as little as possible-
-      # (?=Envelope) means that the match must occur behind the text "Envelope" but "Evelope" itself is not included in the match.
+      # (?=Envelope) means that the match must occur behind the text "Envelope" but "Envelope" itself is not included in the match.
 # | is a pipe operator that uses the output of the previous command as input for the next command.
 # grep 'Body: ' filters the output of the previous grep command to only include lines containing the string "Body:".
 newConvertetMessages=($(echo "$ConvertetData" | grep -oP '(?<=Envelope).*?(?=Envelope)' | grep 'Body:'))
@@ -182,7 +180,7 @@ newMessages=("${newConvertetMessages[@]//_/ }") # Converting the strings back to
 # Executing upcoming actions
 executeUpcomingActions
 
-# analysing new messages
+# Analysing new messages
 cycle=0
 for element in "${newMessages[@]}";
 do
@@ -193,7 +191,7 @@ do
    echo "$cycle: "
    echo "$element"
 
-   # getting memessag author, message timestamp, author role and reply adress.
+   # Getting message author, message timestamp, author role and reply address.
    messageAuthor=$(echo "${newMessages[cycle]}" | grep -oP '\+\d+' | head -n 1)
    messageTimestamp=$(echo "${newMessages[cycle]}" | grep -oP 'Timestamp: \K\d+')
    if [[ " ${Admins[@]} " =~ "$messageAuthor" ]];
@@ -213,13 +211,13 @@ do
       replyAdress="-g$replyAdress"
    fi
 
-   # checking if VaGABfS was mentioned and there is no quotet message
+   # Checking if VaGABfS was mentioned and there is no quoted message
    if [[ "${newMessages[cycle]}" =~ " Mentions: - “VaGABfS " || ! "$replyAdress" =~ "-g" || "${newMessages[cycle],,}" =~ " nein " || "${newMessages[cycle],,}" =~ " nö " || "${newMessages[cycle],,}" =~ " ne " || "${newMessages[cycle],,}" =~ "gute nacht" || "${newMessages[cycle],,}" =~ "guten morgen" || "${newMessages[cycle],,}" =~ "🦦" || "${newMessages[cycle],,}" =~ "allo" ]];
    then
       if ! [[ "${newMessages[cycle]}" =~ " Quote: Id: " ]];
       then
 
-         # checking if an auto-reply-trigger-word got received and replying
+         # Checking if an auto-reply-trigger-word got received and replying
          if [[ "${newMessages[cycle],,}" =~ " nein " || "${newMessages[cycle],,}" =~ " nö " || "${newMessages[cycle],,}" =~ " ne " ]];
          then
             signal-cli send $replyAdress -m"Doch‼" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
@@ -246,23 +244,23 @@ do
                signal-cli send $replyAdress -m"Gute Nacht💤"
             fi
 
-         # checking if a command yhould be executet that doesent require moderrator or admin rights
+         # Checking if a command should be executed that doesn't require moderator or admin rights
          elif [[ "${newMessages[cycle]}" =~ "whoAreYou" || "${newMessages[cycle]}" =~ "whatRoleIs" || "${newMessages[cycle]}" =~ "help" ]];
          then
 
-            #checking if help should be executed
+            # Checking if help should be executed
             if [[ "${newMessages[cycle]}" =~ "help" ]];
             then
                signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
                signal-cli send $replyAdress -m"`echo -e " To find more information about me, visit: https://github.com/The-Bug-Bashers/VaGABfS If you got further questions, feel free to contact my programmer @Flottegurke. To contact @Flottegurke, open a new issue here: https://github.com/The-Bug-Bashers/VaGABfS/issues/new and add the label „question“."`" --preview-url  https://github.com/The-Bug-Bashers/VaGABfS --preview-title "My GitHub repository" --preview-description "Here you can find information about me and get help if you have any questions."  --quote-timestamp $messageTimestamp --quote-author $messageAuthor --preview-image github-6980894_1280.png --mention "0:0:$messageAuthor"
 
-            # checking if whoAreYou should be executed
+            # Checking if whoAreYou should be executed
             elif [[ "${newMessages[cycle]}" =~ "whoAreYou" ]];
             then
-               # checking if someone else then the message author should be mentioned
+               # Checking if someone else then the message author should be mentioned
                if [[ "${newMessages[cycle]}" =~ "-m" || "${newMessages[cycle]}" =~ "--mention" ]];
                then
-                  # checking if the author has Moderrator rights
+                  # Checking if the author has moderator rights
                   if [[ "${Moderatores[@]}" =~ "$messageAuthor" ]];
                   then
                      signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
@@ -272,7 +270,7 @@ do
                      signal-cli send $replyAdress -m"You are a member, you need to be an moderator or admin in order to add the -m / --mention attribute. You can execute whoAreYou without -m / --mention. You are also allowed to add the -p switch." --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
                   fi
                fi
-               # checking if the whoAreYou message should be send via a personal chat
+               # Checking if the whoAreYou message should be sent via a personal chat
                if [[ "${newMessages[cycle]}" =~ "-p" || "${newMessages[cycle]}" =~ "--private" ]];
                then
                   replyAdress="$messageAuthor"
@@ -280,14 +278,14 @@ do
                signal-cli send $replyAdress -m"`echo -e " Hello! I am VaGABfS, the Voting and Group Administration Bot for Signal! It's my job to manage votings in our Signal group and tell you the results. Go to the Wiki-page of my GitHub-Repository (https://github.com/The-Bug-Bashers/VaGABfS/wiki#manual (YES, I HAVE A GITHUB REPO AND I'M VERY PROUD OF THAT‼ (REALLY‼))) to see the commands you can use while chatting with me. If you're too lazy to click on that link, here are some basic commands:\n- vote [voting-number] [answer]: Give your opinion to one of the currently running votings\n- voteInfo [voting-number]: Have a summary of all running votings and see the current state of the results"`" --text-style "449:29:ITALIC" "449:29:MONOSPACE" "449:29:BOLD" "540:24:ITALIC" "540:24:BOLD" "540:24:MONOSPACE" --preview-url https://github.com/The-Bug-Bashers/VaGABfS/wiki#manual --preview-title "MY GITHUB REPOSITORY WIKI‼" --preview-description "All of my commands" --preview-image github-6980894_1280.png --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
             else
 
-               #executing whatRoleIs command
-               Data=$(echo "${newMessages[cycle]}" | grep -oP '(?<=-u|--user)\s*\+\d+') # getting target user
+               # Executing whatRoleIs command
+               Data=$(echo "${newMessages[cycle]}" | grep -oP '(?<=-u|--user)\s*\+\d+') # Getting target user
                if [[ "$Data" = "" ]];
                then
                   signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
                   signal-cli send $replyAdress -m"Your role is: $authorRole. If you want to see the role of another user, execute whatRoleIs -u telephonenumberOfUser or whatRoleIs --user." --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
                else
-                  # checking role of target user
+                  # Checking role of target user
                   if [[ " ${Admins[@]} " =~ "$Data" ]];
                   then
                      authorRole="Admin"
@@ -305,7 +303,7 @@ do
          # Checking whether a command that requires administrator rights should be executed
          elif [[ "${newMessages[cycle]}" =~ "stopBot" || "${newMessages[cycle]}" =~ "logNewMessages" || "${newMessages[cycle]}" =~ "logUpcomingActions" || "${newMessages[cycle]}" =~ "addUpcomingAction" || "${newMessages[cycle]}" =~ "deleteUpcomingAction" || "${newMessages[cycle]}" =~ "addMember" || "${newMessages[cycle]}" =~ "removeMember" || "${newMessages[cycle]}" =~ "makeAdmin" || "${newMessages[cycle]}" =~ "revokeAdmin" || "${newMessages[cycle]}" =~ "changeGroupName" || "${newMessages[cycle]}" =~ "changeGroupDescription" ]];
          then
-            # Checking if The message author is an Admin
+            # Checking if the message author is an admin
             if [[ "${Admins[@]}" =~ "$messageAuthor" ]];
             then
 
@@ -331,7 +329,7 @@ do
                # Checking if removeMember should be executed
                elif [[ "${newMessages[cycle]}" =~ "removeMember" ]];
                then
-                  Data=$(echo "${newMessages[cycle]}" | grep -oP '(?<=-u|--user)\s*\+\d+') # getting target user
+                  Data=$(echo "${newMessages[cycle]}" | grep -oP '(?<=-u|--user)\s*\+\d+') # Getting target user
                   if [[ "$Data" = "" ]];
                   then
                      signal-cli sendReaction $replyAdress -t $messageTimestamp -e🫤 -a $messageAuthor
@@ -356,7 +354,7 @@ do
                # Checking if makeAdmin should be executed
                elif [[ "${newMessages[cycle]}" =~ "makeAdmin" ]];
                then
-                  Data=$(echo "${newMessages[cycle]}" | grep -oP '(?<=-u|--user)\s*\+\d+') # getting target user
+                  Data=$(echo "${newMessages[cycle]}" | grep -oP '(?<=-u|--user)\s*\+\d+') # Getting target user
                   if [[ "$Data" = "" ]];
                   then
                      signal-cli sendReaction $replyAdress -t $messageTimestamp -e🫤 -a $messageAuthor
@@ -381,7 +379,7 @@ do
                # Checking if revokeAdmin should be executed
                elif [[ "${newMessages[cycle]}" =~ "revokeAdmin" ]];
                then
-                  Data=$(echo "${newMessages[cycle]}" | grep -oP '(?<=-u|--user)\s*\+\d+') # getting target user
+                  Data=$(echo "${newMessages[cycle]}" | grep -oP '(?<=-u|--user)\s*\+\d+') # Getting target user
                   if [[ "$Data" = "" ]];
                   then
                      signal-cli sendReaction $replyAdress -t $messageTimestamp -e🫤 -a $messageAuthor
@@ -406,7 +404,7 @@ do
                # Checking if changeGroupName should be executed
                elif [[ "${newMessages[cycle]}" =~ "changeGroupName" ]];
                then
-                  Data=$(echo "${newMessages[cycle]}" | grep -oP '(?<=changeGroupName ")[^"]*') # getting new name
+                  Data=$(echo "${newMessages[cycle]}" | grep -oP '(?<=changeGroupName ")[^"]*') # Getting new name
                   if [[ "$Data" = "" ]];
                   then
                      signal-cli sendReaction $replyAdress -t $messageTimestamp -e🫤 -a $messageAuthor
@@ -425,7 +423,7 @@ do
                # Checking if changeGroupDescription should be executed
                elif [[ "${newMessages[cycle]}" =~ "changeGroupDescription" ]];
                then
-                  Data=$(echo "${newMessages[cycle]}" | grep -oP '(?<=changeGroupDescription ")[^"]*') # getting new description
+                  Data=$(echo "${newMessages[cycle]}" | grep -oP '(?<=changeGroupDescription ")[^"]*') # Getting new description
                   if [[ "$Data" = "" ]];
                   then
                      signal-cli sendReaction $replyAdress -t $messageTimestamp -e🫤 -a $messageAuthor
@@ -441,7 +439,7 @@ do
                      fi
                   fi
 
-               # checking if logUpcomingActions should be executed
+               # Checking if logUpcomingActions should be executed
                elif [[ "${newMessages[cycle]}" =~ "logUpcomingActions" ]];
                then
                   Data=""
@@ -452,7 +450,7 @@ do
                   signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
                   signal-cli send $replyAdress -m"`echo -e " $Data"`" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
 
-               # checking if addUpcomingAction should be executed
+               # Checking if addUpcomingAction should be executed
                elif [[ "${newMessages[cycle]}" =~ "addUpcomingAction" ]];
                then
                   Data=$(echo "${newMessages[cycle]}" | grep -oP '(?<=addUpcomingAction ")[^"]*')
@@ -465,20 +463,20 @@ do
                      signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
                   fi
 
-               # checking if deleteUpcomingAction should be executed
+               # Checking if deleteUpcomingAction should be executed
                elif [[ "${newMessages[cycle]}" =~ "deleteUpcomingAction" ]];
                then
                   Data=$(echo "${newMessages[cycle]}" | grep -oP 'deleteUpcomingAction \K\d+')
                   if [[ $Data = "" ]];
                   then
                      signal-cli sendReaction $replyAdress -t $messageTimestamp -e🫤 -a $messageAuthor
-                    signal-cli send $replyAdress -m" No upcoming action to delete found. To delete an upcoming action, execute deleteUpcomingAction <the number of the upcoming action that should be deleted>"  --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+                     signal-cli send $replyAdress -m" No upcoming action to delete found. To delete an upcoming action, execute deleteUpcomingAction <the number of the upcoming action that should be deleted>"  --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
                   else
                      deleteUpcomingAction $Data
                      signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
                   fi
 
-               # checking if stopBot should be executed
+               # Checking if stopBot should be executed
                elif [[ "${newMessages[cycle]}" =~ "stopBot" ]];
                then
                   if [[ "${upcomingActions1[@]}" =~ "stopBot" ]];
@@ -504,7 +502,7 @@ do
                   fi
 
                else
-                  # executing logNewMessages
+                  # Executing logNewMessages
                   signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
                   signal-cli send $replyAdress -m" $(printf "Message:\n%s\n\n" "${newMessages[@]}")" --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
                fi
@@ -524,7 +522,7 @@ done
 newMessages=()
 done
 
-# this is the location for unused things just ignore it
+# This is the location for unused things. Just ignore it.
 
 #🚫 ✅ 🫤
 
@@ -535,4 +533,4 @@ done
 #            stopBot=1
 #        fi
 #done
-#echo "vertig"
+#echo "fertig"
