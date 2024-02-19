@@ -229,7 +229,7 @@ do
             if ! [[ "${upcomingActions6[@]}" =~ "gutenMorgen" && "${upcomingActions4[@]}" =~ "$replyAdress" ]];
             then
                signal-cli send $replyAdress -m"Guten Morgen‼👋"
-               addUpcomingAction "timeout" $messageTimestamp $messageAuthor $replyAdress "$(( $(date +%s%N | cut -b1-13)+3600000))" "gutenMorgen"
+               addUpcomingAction "timeout" $messageTimestamp $messageAuthor $replyAdress "$(( $(date +%s%N | cut -b1-13)+1200000))" "gutenMorgen"
             fi
          elif [[  "${newMessages[cycle],,}" =~ "🦦" ]];
          then
