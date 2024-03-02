@@ -16,6 +16,7 @@ sudo apt install screen -y
 
 git clone https://github.com/The-Bug-Bashers/VaGABfS.git
 wget https://cdn.pixabay.com/photo/2022/01/30/13/33/github-6980894_1280.png
+wget https://d2j6dbq0eux0bg.cloudfront.net/images/77605319/3165655054.jpg
 
 mv ~/VaGABfS/* ~/
 
