@@ -111,7 +111,6 @@ upcomingActions6=() # Special Parameters 1
 upcomingActions7=() # Special Parameters 2
 upcomingActions8=() # Special Parameters 3
 
-
 # Function to check if an upcoming action should be performed
 upcomingActionShouldBePerformed() {
    local Time="$(date +%s%N | cut -b1-13)"
@@ -125,21 +124,38 @@ upcomingActionShouldBePerformed() {
    return 1
 }
 
-
-
 # Executing upcoming actions
 executeUpcomingActions() {
    # Checking if an upcoming action should be performed
    while upcomingActionShouldBePerformed; do
 
-      # Checking if stopBot is expired
-      if [[ "${upcomingActions1[$action]}" =~ "stopBot" ]] then
+      # Checking if upcoming action is send
+      if [[ "${upcomingActions1[$action]}" =~ "send" ]]; then
+         signal-cli send ${upcomingActions4[$action]} "${upcomingActions6[$action]}"
+         if [[ "${upcomingActions7[$action]}" =~ "-m" || "${upcomingActions7[$action]}" =~ "-h" || "${upcomingActions7[$action]}" =~ "-d" ]]; then
+            if [[ "${upcomingActions7[$action]}" =~ "-m" ]]; then
+               addUpcomingAction "send" "${upcomingActions2[$action]}" "${upcomingActions3[$action]}" ${upcomingActions4[$action]} "$(( $(date +%s%N | cut -b1-13)+$(echo "${upcomingActions7[$action]}" | grep -Po '\d+')*60000))" "${upcomingActions6[$action]}" "${upcomingActions7[$action]}"
+            elif [[ "${upcomingActions7[$action]}" =~ "-h" ]]; then
+               addUpcomingAction "send" "${upcomingActions2[$action]}" "${upcomingActions3[$action]}" ${upcomingActions4[$action]} "$(( $(date +%s%N | cut -b1-13)+$(echo "${upcomingActions7[$action]}" | grep -Po '\d+')*3600000))" "${upcomingActions6[$action]}" "${upcomingActions7[$action]}"
+            else
+               addUpcomingAction "send" "${upcomingActions2[$action]}" "${upcomingActions3[$action]}" ${upcomingActions4[$action]} "$(( $(date +%s%N | cut -b1-13)+$(echo "${upcomingActions7[$action]}" | grep -Po '\d+')*86400000))" "${upcomingActions6[$action]}" "${upcomingActions7[$action]}"
+            fi
+         fi
+
+      # Checking if upcoming action is stopBot
+      elif [[ "${upcomingActions1[$action]}" =~ "stopBot" ]]; then
          signal-cli sendReaction ${upcomingActions4[$action]} -t ${upcomingActions2[$action]} -e⏰ -a ${upcomingActions3[$action]}
          signal-cli send ${upcomingActions4[$action]} -m" You took too long to respond. stopBot will be cancelled" --mention "0:0:${upcomingActions3[$action]}" --quote-timestamp ${upcomingActions2[$action]} --quote-author ${upcomingActions3[$action]}
+         deleteUpcomingAction $action
       fi
    deleteUpcomingAction $action
    done
 }
+
+# executing config
+#while IFS= read -r line; do
+#   eval "$line"
+#done < config.txt
 
 # Main loop that runs until bot is stopped
 while [ $stopBot -ne 1 ]; do
@@ -193,7 +209,7 @@ for element in "${newMessages[@]}"; do
       authorRole="Member"
    fi
    replyAdress=$(echo "${newMessages[cycle]}" | grep -oP ' Group info: Id: \K\S+')
-   if [[ "$replyAdress" = "" ]] then
+   if [[ "$replyAdress" = "" ]]; then
       replyAdress=$messageAuthor
    else
       replyAdress="-g$replyAdress"
@@ -209,26 +225,29 @@ for element in "${newMessages[@]}"; do
          elif [[  "${newMessages[cycle],,}" =~ "guten morgen" ]]; then
             if ! [[ "${upcomingActions6[@]}" =~ "gutenMorgen" && "${upcomingActions4[$(getIndex "${upcomingActions6[@]}" "gutenMorgen")]}" =~ "$replyAdress" ]]; then
                signal-cli send $replyAdress -m"Guten Morgen‼👋"
-               addUpcomingAction "timeout" $messageTimestamp $messageAuthor $replyAdress "$(( $(date +%s%N | cut -b1-13)+1200000))" "gutenMorgen"
+               addUpcomingAction "timeout" $messageTimestamp $messageAuthor $replyAdress "$(( $(date +%s%N | cut -b1-13)+1800000))" "gutenMorgen"
             fi
          elif [[  "${newMessages[cycle],,}" =~ "🦦" ]]; then
-            signal-cli send $replyAdress -m"Süßer Otter 🦦 😍" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+            if ! [[ "${upcomingActions6[@]}" =~ "otter" && "${upcomingActions4[$(getIndex "${upcomingActions6[@]}" "otter")]}" =~ "$replyAdress" ]]; then
+               signal-cli send $replyAdress -m" Süßer Otter 🦦 😍"
+               addUpcomingAction "timeout" $messageTimestamp $messageAuthor $replyAdress "$(( $(date +%s%N | cut -b1-13)+43200000))" "otter"
+            fi
          elif [[  "${newMessages[cycle],,}" =~ "allo" ]]; then
             if ! [[ "${upcomingActions6[@]}" =~ "hallo" && "${upcomingActions4[$(getIndex "${upcomingActions6[@]}" "hallo")]}" =~ "$replyAdress" ]]; then
                signal-cli send $replyAdress -m" Hallo! 👋"
-               addUpcomingAction "timeout" $messageTimestamp $messageAuthor $replyAdress "$(( $(date +%s%N | cut -b1-13)+1200000))" "hallo"
+               addUpcomingAction "timeout" $messageTimestamp $messageAuthor $replyAdress "$(( $(date +%s%N | cut -b1-13)+1800000))" "hallo"
             fi
          elif [[  "${newMessages[cycle],,}" =~ "gute nacht" ]];
          then
             if [[ "$messageAuthor" =~ "+4915255665313" ]]; then
                if ! [[ "${upcomingActions6[@]}" =~ "sleepWellInYourBetgestell" && "${upcomingActions4[$(getIndex "${upcomingActions6[@]}" "sleepWellInYourBetgestell")]}" =~ "$replyAdress" ]]; then
-                  signal-cli send $replyAdress -m"Sleep well in your Bettgestell" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
-                  addUpcomingAction "timeout" $messageTimestamp $messageAuthor $replyAdress "$(( $(date +%s%N | cut -b1-13)+1200000))" "sleepWellInYourBetgestell"
+                  signal-cli send $replyAdress -m"Sleep well in your Bettgestell🛏️" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+                  addUpcomingAction "timeout" $messageTimestamp $messageAuthor $replyAdress "$(( $(date +%s%N | cut -b1-13)+18000000))" "sleepWellInYourBetgestell"
                fi
             else
                if ! [[ "${upcomingActions6[@]}" =~ "guteNacht" && "${upcomingActions4[$(getIndex "${upcomingActions6[@]}" "guteNacht")]}" =~ "$replyAdress" ]]; then
                   signal-cli send $replyAdress -m"Gute Nacht💤"
-                  addUpcomingAction "timeout" $messageTimestamp $messageAuthor $replyAdress "$(( $(date +%s%N | cut -b1-13)+1200000))" "guteNacht"
+                  addUpcomingAction "timeout" $messageTimestamp $messageAuthor $replyAdress "$(( $(date +%s%N | cut -b1-13)+900000))" "guteNacht"
                fi
             fi
          # Checking if a command should be executed that doesn't require moderator or admin rights
@@ -237,7 +256,7 @@ for element in "${newMessages[@]}"; do
             # Checking if help should be executed
             if [[ "${newMessages[cycle]}" =~ "help" ]]; then
                signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
-               signal-cli send $replyAdress -m"`echo -e " To find more information about me, visit: https://github.com/The-Bug-Bashers/VaGABfS If you got further questions, feel free to contact my programmer @Flottegurke. To contact @Flottegurke, open a new issue here: https://github.com/The-Bug-Bashers/VaGABfS/issues/new and add the label „question“."`" --preview-url  https://github.com/The-Bug-Bashers/VaGABfS --preview-title "My GitHub repository" --preview-description "Here you can find information about me and get help if you have any questions."  --quote-timestamp $messageTimestamp --quote-author $messageAuthor --preview-image github-6980894_1280.png --mention "0:0:$messageAuthor"
+               signal-cli send $replyAdress -m"`echo -e " To find more information about me, visit: https://github.com/The-Bug-Bashers/VaGABfS If you got further questions, feel free to contact my programmer @Flottegurke. To contact @Flottegurke, open a new issue here: https://github.com/The-Bug-Bashers/VaGABfS/issues/new and add the label „question“."`" --preview-url  https://github.com/The-Bug-Bashers/VaGABfS --preview-title "My GitHub repository" --preview-description "Here you can find information about me and get help if you have any questions."  --preview-image github-6980894_1280.png --quote-timestamp $messageTimestamp --quote-author $messageAuthor --mention "0:0:$messageAuthor"
 
             # Checking if whoAreYou should be executed
             elif [[ "${newMessages[cycle]}" =~ "whoAreYou" ]]; then
@@ -467,7 +486,3 @@ done
 
 newMessages=()
 done
-
-# This is the location for unused things. Just ignore it.
-
-#🚫 ✅ 🫤
