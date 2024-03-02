@@ -1,0 +1,1 @@
+addUpcomingAction "send" "automation" "automation" "-geVKi/98VxZfkqRHSt83zbEHJbn/eq3H0a/pIrpV7myA=" "$(date +%s%N -d "next wednesday" | cut -b1-13)" "-a3165655052.jpg" "-d7"
