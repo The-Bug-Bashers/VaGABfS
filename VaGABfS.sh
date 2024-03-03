@@ -99,8 +99,9 @@ changeUpcomingAction() {
 }
 
 # Declaring variables and arrays
-Admins=("+4915784191434")
-Moderatores=("${Admins[@]}" "+491774730644" "+491706186697")
+read -a Admins < admins.txt
+read -a Moderators < moderators.txt
+Moderators+=("${Admins[@]}")
 stopBot=0
 upcomingActions1=() # Associated command
 upcomingActions2=() # Timestamp of original message
@@ -203,7 +204,7 @@ for element in "${newMessages[@]}"; do
    messageTimestamp=$(echo "${newMessages[cycle]}" | grep -oP 'Timestamp: \K\d+')
    if [[ " ${Admins[@]} " =~ "$messageAuthor" ]]; then
       authorRole="Admin"
-   elif [[ " ${Moderatores[@]} " =~ "$messageAuthor" ]]; then
+   elif [[ " ${Moderators[@]} " =~ "$messageAuthor" ]]; then
       authorRole="Moderator"
    else
       authorRole="Member"
@@ -263,12 +264,12 @@ for element in "${newMessages[@]}"; do
                # Checking if someone else then the message author should be mentioned
                if [[ "${newMessages[cycle]}" =~ "-m" || "${newMessages[cycle]}" =~ "--mention" ]]; then
                   # Checking if the author has moderator rights
-                  if [[ "${Moderatores[@]}" =~ "$messageAuthor" ]]; then
+                  if [[ "${Moderators[@]}" =~ "$messageAuthor" ]]; then
                      signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
                      messageAuthor=$(echo "${newMessages[cycle]}" | grep -oP '(?<=-m|--mention)\s*\+\d+')
                   else
                      signal-cli sendReaction $replyAdress -t $messageTimestamp -e🚫 -a $messageAuthor
-                     signal-cli send $replyAdress -m"You are a member, you need to be a moderator or admin in order to add the -m / --mention attribute. You can execute whoAreYou without -m / --mention. You are also allowed to add the -p switch." --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+                     signal-cli send $replyAdress -m" You are a member, you need to be a moderator or admin in order to add the -m / --mention attribute. You can execute whoAreYou without -m / --mention. You are also allowed to add the -p switch." --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
                   fi
                fi
                # Checking if the whoAreYou message should be sent via a personal chat
@@ -282,18 +283,18 @@ for element in "${newMessages[@]}"; do
                Data=$(echo "${newMessages[cycle]}" | grep -oP '(?<=-u|--user)\s*\+\d+') # Getting target user
                if [[ "$Data" = "" ]]; then
                   signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
-                  signal-cli send $replyAdress -m"Your role is: $authorRole. If you want to see the role of another user, execute whatRoleIs -u or --user <telephoneNumberOfUser>." --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+                  signal-cli send $replyAdress -m" Your role is: $authorRole. If you want to see the role of another user, execute whatRoleIs -u or --user <telephoneNumberOfUser>." --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
                else
                   # Checking role of target user
                   if [[ " ${Admins[@]} " =~ "$Data" ]]; then
                      authorRole="Admin"
-                  elif [[ " ${Moderatores[@]} " =~ "$Data" ]]; then
+                  elif [[ " ${Moderators[@]} " =~ "$Data" ]]; then
                      authorRole="Moderator"
                   else
                      authorRole="Member"
                   fi
                   signal-cli sendReaction $replyAdress -t $messageTimestamp -e✅ -a $messageAuthor
-                  signal-cli send $replyAdress -m"The role of $Data is: $authorRole." --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+                  signal-cli send $replyAdress -m" The role of $Data is: $authorRole." --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
                fi
             fi
 
@@ -302,8 +303,72 @@ for element in "${newMessages[@]}"; do
             # Checking if the message author is an admin
             if [[ "${Admins[@]}" =~ "$messageAuthor" ]]; then
 
+
+               # Checking if changeRole should be executed
+               if [[ "${newMessages[cycle]}" =~ "changeRole" ]]; then
+                  if ! [[ "$(echo "$(signal-cli listGroups -d $replyAdress)" | grep -oP '(?<=Members: \[)[^]]*(?=])')" =~ "$Data" ]]; then
+                     signal-cli sendReaction $replyAdress -t $messageTimestamp -e❌ -a $messageAuthor
+                     signal-cli send $replyAdress -m" This user is not a member of this group." --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+                  else
+                     Data=$(echo "${newMessages[cycle]}" | grep -oP '(?<=-u|--user)\s*\+\d+') # Getting target user
+                     if [[ "$Data" = "" ]]; then
+                        signal-cli sendReaction $replyAdress -t $messageTimestamp -e🫤 -a $messageAuthor
+                        signal-cli send $replyAdress -m" No user provided. Execute changeRole -u or --user <telephone number of user> --member, --moderator or --admin in order to change the role of an user." --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+                        if [[ "${newMessages[cycle]}" =~ "--member" || "${newMessages[cycle]}" =~ "--moderator" || "${newMessages[cycle]}" =~ "--admin" ]]; then
+
+                           if [[ "${newMessages[cycle]}" =~ "--member" ]]; then
+                              if [[ "${Admins[@]}" =~ "$Data" ]]; then
+                                 unset Admins[$(getIndex "${Admins[@]}" "$Data")]
+                                 echo "${Admins[@]}" > admins.txt
+                                 read -a Moderators < moderators.txt
+                                 Moderators+=("${Admins[@]}")
+                              elif [[ "${Moderators[@]}" =~ "$Data" ]]; then
+                                 read -a Moderators < moderators.txt
+                                 unset Moderators[$(getIndex "${Moderators[@]}" "$Data")]
+                                 echo "${Moderators[@]}" > moderators.txt
+                                 Moderators+=("${Admins[@]}")
+                              else
+                                 signal-cli send $replyAdress -m" This user already is a member." --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+                              fi
+                           elif [[ "${newMessages[cycle]}" =~ "--moderator" ]]; then
+                              if [[ "${Admins[@]}" =~ "$Data" ]]; then
+                                 unset Admins[$(getIndex "${Admins[@]}" "$Data")]
+                                 echo "${Admins[@]}" > admins.txt
+                                 read -a Moderators < moderators.txt
+                                 Moderators+=("$Data")
+                                 echo "${Moderators[@]}" > moderators.txt
+                                 Moderators+=("${Admins[@]}")
+                              elif ! [[ "${Moderators[@]}" =~ "$Data" ]]; then
+                                 read -a Moderators < moderators.txt
+                                 Moderators+=("$Data")
+                                 echo "${Moderators[@]}" > moderators.txt
+                                 Moderators+=("${Admins[@]}")
+                              else
+                                 signal-cli send $replyAdress -m" This user already is a moderator." --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --qu>
+                              fi
+                           else
+                              if [[ "${Moderators[@]}" =~ "$Data" ]]; then
+                                 unset Moderators[$(getIndex "${Moderators[@]}" "$Data")]
+                                 echo "${Moderators[@]}" > moderators.txt
+                                 Admins+=("$Data")
+                                 echo "${Admins[@]}" > admins.txt
+                              elif ! [[ "${Admins[@]}" =~ "$Data" ]]; then
+                                 Admins+=("$Data")
+                                 echo "${Admins[@]}" > admins.txt
+                                 read -a Moderators < moderators.txt
+                                 Moderators+=("${Admins[@]}")
+                              else
+                                 signal-cli send $replyAdress -m" This user already is an Admin." --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp ->                              fi
+                              fi
+                        else
+                           signal-cli send $replyAdress -m" No role provided. Execute changeRole -u or --user <telephone number of member> --member, --moderator or --admin in order to change the role of an user." --mention "0:0:$messageAuthor" --quote-timestamp $messageTimestamp --quote-author $messageAuthor
+                        fi
+                     fi
+                  fi
+
+
                # Checking if addMember should be executed
-               if [[ "${newMessages[cycle]}" =~ "addMember" ]]; then
+               elif [[ "${newMessages[cycle]}" =~ "addMember" ]]; then
                   Data=$(echo "${newMessages[cycle]}" | grep -oP '(?<=-u|--user)\s*\+\d+') # getting target user
                   if [[ "$Data" = "" ]]; then
                      signal-cli sendReaction $replyAdress -t $messageTimestamp -e🫤 -a $messageAuthor
